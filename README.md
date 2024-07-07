@@ -15,6 +15,11 @@ The available options are:
 * **red-pajama-3b-instruct** -  A 2.8B parameter pre-trained language model based on GPT-NEOX architecture. The model was fine-tuned for few-shot applications on the data of [GPT-JT](https://huggingface.co/togethercomputer/GPT-JT-6B-v1), with exclusion of tasks that overlap with the HELM core scenarios.More details about model can be found in [model card](https://huggingface.co/togethercomputer/RedPajama-INCITE-Instruct-3B-v1).
 * **mistral-7b** - The Mistral-7B-v0.2 Large Language Model (LLM) is a pretrained generative text model with 7 billion parameters. You can find more details about model in the [model card](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2), [paper](https://arxiv.org/abs/2310.06825) and [release blog post](https://mistral.ai/news/announcing-mistral-7b/).
 
+* We have also implemented login authentication in this Chatbot. To authenticate, use the following credentials:
+
+Username: user
+Password: password
+
 ## Notebook Contents
 
 The tutorial consists of the following steps:
