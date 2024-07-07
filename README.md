@@ -17,7 +17,7 @@ The available options are:
 
 * We have also implemented login authentication in this Chatbot. To authenticate, use the following credentials:
 
-Username: user
+Username: user<br>
 Password: password
 
 ## Notebook Contents
