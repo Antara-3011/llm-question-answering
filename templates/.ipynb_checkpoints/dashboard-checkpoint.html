@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <style>
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background-color: #f8f9fa;
+        color: #343a40;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        max-width: 800px;
+        width: 100%;
+        padding: 40px;
+        background: #eae9e9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        text-align: center;
+        position: relative;
+      }
+
+      .welcome-message {
+        position: center;
+        top: 20px;
+        left: 20px;
+        color: #000000;
+        margin: 0;
+        font-size: 18px;
+      }
+
+      h2 {
+        color: #18055a;
+        margin-bottom: 20px;
+      }
+
+      .start-button {
+        margin-top: 30px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+      }
+
+      .start-button:hover {
+        background-color: #0056b3;
+      }
+
+      .logout {
+        margin-top: 30px;
+        text-align: center;
+      }
+
+      .logout a {
+        color: #2c55eb;
+        text-decoration: none;
+        font-weight: bold;
+        transition: color 0.3s ease;
+      }
+
+      .logout a:hover {
+        color: #a71d2a;
+      }
+    </style>
+    <script>
+      async function checkPortAndOpenGradio() {
+    const ports = [7860, 7862];
+    for (const port of ports) {
+        try {
+            const response = await fetch(`http://127.0.0.1:${port}`);
+            if (response.ok) {
+                window.open(`http://127.0.0.1:${port}`);
+                return; // Stop checking after finding the first available port
+            }
+        } catch (error) {
+            console.error(`Gradio not available on port ${port}:`, error);
+        }
+    }
+    alert('Gradio server is not running on any of the checked ports.');
+}
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1 class="welcome-message">Welcome, {{ name }}!</h1>
+      <h2>Question Answering Chatbot</h2>
+      <button class="start-button" onclick="checkPortAndOpenGradio()">
+        Ask Questions
+      </button>
+      <div class="logout">
+        <a href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </body>
+</html>
