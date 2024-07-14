@@ -31,7 +31,7 @@ The project consists of the following steps:
 
 
 ## Select model for inference
-[back to top ⬆️](#Table-of-contents:)
+
 
 The project supports different models, you can select one from the provided options to compare the quality of open source LLM solutions.
 >**Note**: conversion of some models can require additional actions from user side and at least 64GB RAM for conversion.
@@ -46,19 +46,7 @@ The available options are:
 * **llama-3-8b-instruct** - Llama 3 is an auto-regressive language model that uses an optimized transformer architecture. The tuned versions use supervised fine-tuning (SFT) and reinforcement learning with human feedback (RLHF) to align with human preferences for helpfulness and safety. The Llama 3 instruction tuned models are optimized for dialogue use cases and outperform many of the available open source chat models on common industry benchmarks. More details about model can be found in [Meta blog post](https://ai.meta.com/blog/meta-llama-3/), [model website](https://llama.meta.com/llama3) and [model card](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct).
 >**Note**: run model with demo, you will need to accept license agreement. 
 >You must be a registered user in 🤗 Hugging Face Hub. Please visit [HuggingFace model card](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf), carefully read terms of usage and click accept button.  You will need to use an access token for the code below to run. For more information on access tokens, refer to [this section of the documentation](https://huggingface.co/docs/hub/security-tokens).
->You can login on Hugging Face Hub in notebook environment, using following code:
- 
-```python
-    ## login to huggingfacehub to get access to pretrained model 
 
-    from huggingface_hub import notebook_login, whoami
-
-    try:
-        whoami()
-        print('Authorization token already provided')
-    except OSError:
-        notebook_login()
-```
 # LLM Instruction-following pipeline with OpenVINO 
 
 LLM stands for “Large Language Model”, which refers to a type of artificial intelligence model that is designed to understand and generate human-like text based on the input it receives. LLMs are trained on large datasets of text to learn patterns, grammar, and semantic relationships, allowing them to generate coherent and contextually relevant responses. One core capability of Large Language Models (LLMs) is to follow natural language instructions. Instruction-following models are capable of generating text in response to prompts and are often used for tasks like writing assistance, chatbots, and content generation.
