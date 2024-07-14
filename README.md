@@ -12,24 +12,6 @@ The project consists of the following steps:
 - Create an instruction-following inference pipeline
 - Run instruction-following pipeline
 
-
-#### Table of contents:
-
-- [Prerequisites](#Prerequisites)
-- [Select model for inference](#Select-model-for-inference)
-- [Instantiate Model using Optimum Intel](#Instantiate-Model-using-Optimum-Intel)
-- [Compress model weights](#Compress-model-weights)
-    - [Weights Compression using Optimum Intel](#Weights-Compression-using-Optimum-Intel)
-    - [Weights Compression using NNCF](#Weights-Compression-using-NNCF)
-- [Select device for inference and model variant](#Select-device-for-inference-and-model-variant)
-- [Create an instruction-following inference pipeline](#Create-an-instruction-following-inference-pipeline)
-    - [Setup imports](#Setup-imports)
-    - [Prepare template for user prompt](#Prepare-template-for-user-prompt)
-    - [Main generation function](#Main-generation-function)
-    - [Helpers for application](#Helpers-for-application)
-- [Run instruction-following pipeline](#Run-instruction-following-pipeline)
-
-
 ## Select model for inference
 
 
