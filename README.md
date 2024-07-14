@@ -105,37 +105,34 @@ To optimize the generation process and use memory more efficiently, the `use_cac
 
 The generation cycle repeats until the end of the sequence token is reached or it also can be interrupted when maximum tokens will be generated. As already mentioned before, we can enable printing current generated tokens without waiting until when the whole generation is finished using Streaming API, it adds a new token to the output queue and then prints them when they are ready.
 
-# LLM Instruction-following pipeline with OpenVINO 
+### Prepare template for user prompt
 
-LLM stands for “Large Language Model”, which refers to a type of artificial intelligence model that is designed to understand and generate human-like text based on the input it receives. LLMs are trained on large datasets of text to learn patterns, grammar, and semantic relationships, allowing them to generate coherent and contextually relevant responses. One core capability of Large Language Models (LLMs) is to follow natural language instructions. Instruction-following models are capable of generating text in response to prompts and are often used for tasks like writing assistance, chatbots, and content generation.
+For effective generation, model expects to have input in specific format. The code prepare template for passing user instruction into model with providing additional context.
 
-In this project, we consider how to run an instruction-following text generation pipeline using popular LLMs and OpenVINO. We will use pre-trained models from the [Hugging Face Transformers](https://huggingface.co/docs/transformers/index) library. To simplify the user experience, the [Hugging Face Optimum Intel](https://huggingface.co/docs/optimum/intel/index) library converts the models to OpenVINO™ IR format.
+### Main generation function
+
+As it was discussed above, `run_generation` function is the entry point for starting generation. It gets provided input instruction as parameter and returns model response.
+
+### Helpers for application
+
+For making interactive user interface we will use Gradio library. The code bellow provides useful functions used for communication with UI elements.
+
+## Run instruction-following pipeline
+
+Now, we are ready to explore model capabilities. This demo provides a simple interface that allows communication with a model using text instruction. Type your instruction into the `User instruction` field or select one from predefined examples and click on the `Submit` button to start generation. Additionally, you can modify advanced generation parameters:
+
+* `Device` - allows switching inference device. Please note, every time when new device is selected, model will be recompiled and this takes some time.
+* `Max New Tokens` - maximum size of generated text.
+* `Top-p (nucleus sampling)` -  if set to < 1, only the smallest set of most probable tokens with probabilities that add up to top_p or higher are kept for a generation.
+* `Top-k` - the number of highest probability vocabulary tokens to keep for top-k-filtering.
+* `Temperature` - the value used to module the logits distribution.
 
 
-The tutorial supports different models, you can select one from provided options to compare quality of open source LLM solutions.
+## Authentication
 
-The available options are:
+We have also implemented Register and login authentication in this Chatbot. To authenticate,the user have to put their username and password,after that they have to login with the same creditionals
 
-* **tiny-llama-1b-chat** - This is the chat model finetuned on top of [TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T](https://huggingface.co/TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T). The TinyLlama project aims to pretrain a 1.1B Llama model on 3 trillion tokens with the adoption of the same architecture and tokenizer as Llama 2. This means TinyLlama can be plugged and played in many open-source projects built upon Llama. Besides, TinyLlama is compact with only 1.1B parameters. This compactness allows it to cater to a multitude of applications demanding a restricted computation and memory footprint. More details about model can be found in [model card](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0)
-* **phi-2** - Phi-2 is a Transformer with 2.7 billion parameters. It was trained using the same data sources as [Phi-1.5](https://huggingface.co/microsoft/phi-1_5), augmented with a new data source that consists of various NLP synthetic texts and filtered websites (for safety and educational value). When assessed against benchmarks testing common sense, language understanding, and logical reasoning, Phi-2 showcased a nearly state-of-the-art performance among models with less than 13 billion parameters. More details about model can be found in [model card](https://huggingface.co/microsoft/phi-2#limitations-of-phi-2).
-* **dolly-v2-3b** - Dolly 2.0 is an instruction-following large language model trained on the Databricks machine-learning platform that is licensed for commercial use. It is based on [Pythia](https://github.com/EleutherAI/pythia) and is trained on ~15k instruction/response fine-tuning records generated by Databricks employees in various capability domains, including brainstorming, classification, closed QA, generation, information extraction, open QA, and summarization. Dolly 2.0 works by processing natural language instructions and generating responses that follow the given instructions. It can be used for a wide range of applications, including closed question-answering, summarization, and generation. More details about model can be found in [model card](https://huggingface.co/databricks/dolly-v2-3b).
-* **red-pajama-3b-instruct** -  A 2.8B parameter pre-trained language model based on GPT-NEOX architecture. The model was fine-tuned for few-shot applications on the data of [GPT-JT](https://huggingface.co/togethercomputer/GPT-JT-6B-v1), with exclusion of tasks that overlap with the HELM core scenarios.More details about model can be found in [model card](https://huggingface.co/togethercomputer/RedPajama-INCITE-Instruct-3B-v1).
-* **mistral-7b** - The Mistral-7B-v0.2 Large Language Model (LLM) is a pretrained generative text model with 7 billion parameters. You can find more details about model in the [model card](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2), [paper](https://arxiv.org/abs/2310.06825) and [release blog post](https://mistral.ai/news/announcing-mistral-7b/).
 
-We have also implemented login authentication in this Chatbot. To authenticate, use the following credentials:
-
-Username: user<br>
-Password: password
-
-## Notebook Contents
-
-The tutorial consists of the following steps:
-
-- Install prerequisites
-- Download and convert the model from a public source using the [OpenVINO integration with Hugging Face Optimum](https://huggingface.co/blog/openvino).
-- Compress model weights to INT8 and INT4 with [OpenVINO NNCF](https://github.com/openvinotoolkit/nncf)
-- Create an instruction-following inference pipeline
-- Run instruction-following pipeline
 
 The image below illustrates the provided user instruction and model answer examples.
 
@@ -150,3 +147,7 @@ For details, please refer to [Installation Guide](../../README.md).
 ## Project Video Link
 
 https://drive.google.com/file/d/13g8suoiCW8PPuORCgaMSx_T7cwUKvMDh/view?usp=drivesdk
+
+## PPT Presentation Link
+
+https://www.canva.com/design/DAGKPsYgdqc/7edqSKqw9LVRIxv5POwM9A/view?utm_content=DAGKPsYgdqc&utm_campaign=designshare&utm_medium=link&utm_source=editor
