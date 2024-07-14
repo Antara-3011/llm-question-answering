@@ -39,3 +39,7 @@ The image below illustrates the provided user instruction and model answer examp
 This is a self-contained example that relies solely on its own code.</br>
 We recommend  running the notebook in a virtual environment. You only need a Jupyter server to start.
 For details, please refer to [Installation Guide](../../README.md).
+
+## Project Video Link
+
+https://drive.google.com/file/d/13g8suoiCW8PPuORCgaMSx_T7cwUKvMDh/view?usp=drivesdk
