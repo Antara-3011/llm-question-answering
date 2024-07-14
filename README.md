@@ -49,45 +49,62 @@ The available options are:
 
 
 ## Instantiate Model using Optimum Intel
-[back to top ⬆️](#Table-of-contents:)
 
 Optimum Intel can be used to load optimized models from the [Hugging Face Hub](https://huggingface.co/docs/optimum/intel/hf.co/models) and create pipelines to run an inference with OpenVINO Runtime using Hugging Face APIs. The Optimum Inference models are API compatible with Hugging Face Transformers models.  This means we just need to replace `AutoModelForXxx` class with the corresponding `OVModelForXxx` class.
 
-Below is an example of the RedPajama model
-
-```diff
--from transformers import AutoModelForCausalLM
-+from optimum.intel.openvino import OVModelForCausalLM
-from transformers import AutoTokenizer, pipeline
-
-model_id = "togethercomputer/RedPajama-INCITE-Chat-3B-v1"
--model = AutoModelForCausalLM.from_pretrained(model_id)
-+model = OVModelForCausalLM.from_pretrained(model_id, export=True)
-```
-
-Model class initialization starts with calling `from_pretrained` method. When downloading and converting the Transformers model, the parameter `export=True` should be added. We can save the converted model for the next usage with the `save_pretrained` method.
-Tokenizer class and pipelines API are compatible with Optimum models.
-
-To optimize the generation process and use memory more efficiently, the `use_cache=True` option is enabled. Since the output side is auto-regressive, an output token hidden state remains the same once computed for every further generation step. Therefore, recomputing it every time you want to generate a new token seems wasteful. With the cache, the model saves the hidden state once it has been computed. The model only computes the one for the most recently generated output token at each time step, re-using the saved ones for hidden tokens. This reduces the generation complexity from $O(n^3)$ to $O(n^2)$ for a transformer model. More details about how it works can be found in this [article](https://scale.com/blog/pytorch-improvements#Text%20Translation). With this option, the model gets the previous step's hidden states (cached attention keys and values) as input and additionally provides hidden states for the current step as output. It means for all next iterations, it is enough to provide only a new token obtained from the previous step and cached key values to get the next token prediction. 
-
 ## Compress model weights
-[back to top ⬆️](#Table-of-contents:)
+
 The Weights Compression algorithm is aimed at compressing the weights of the models and can be used to optimize the model footprint and performance of large models where the size of weights is relatively larger than the size of activations, for example, Large Language Models (LLM). Compared to INT8 compression, INT4 compression improves performance even more but introduces a minor drop in prediction quality.
 
 
 ### Weights Compression using Optimum Intel
-[back to top ⬆️](#Table-of-contents:)
 
 Optimum Intel supports weight compression via NNCF out of the box. For 8-bit compression we pass `load_in_8bit=True` to `from_pretrained()` method of `OVModelForCausalLM`. For 4 bit compression we provide `quantization_config=OVWeightQuantizationConfig(bits=4, ...)` argument containing number of bits and other compression parameters. An example of this approach usage you can find in [llm-chatbot notebook](../llm-chatbot)
 
 ### Weights Compression using NNCF
-[back to top ⬆️](#Table-of-contents:)
 
 You also can perform weights compression for OpenVINO models using NNCF directly. `nncf.compress_weights` function accepts the OpenVINO model instance and compresses its weights for Linear and Embedding layers. We will consider this variant in this notebook for both int4 and int8 compression.
 
 
 >**Note**: This tutorial involves conversion model for FP16 and INT4/INT8 weights compression scenarios. It may be memory and time-consuming in the first run. You can manually control the compression precision below.
 >**Note**: There may be no speedup for INT4/INT8 compressed models on dGPU
+
+
+## Create an instruction-following inference pipeline
+[back to top ⬆️](#Table-of-contents:)
+ 
+ The `run_generation` function accepts user-provided text input, tokenizes it, and runs the generation process. Text generation is an iterative process, where each next token depends on previously generated until a maximum number of tokens or stop generation condition is not reached. To obtain intermediate generation results without waiting until when generation is finished, we will use [`TextIteratorStreamer`](https://huggingface.co/docs/transformers/main/en/internal/generation_utils#transformers.TextIteratorStreamer), provided as part of HuggingFace [Streaming API](https://huggingface.co/docs/transformers/main/en/generation_strategies#streaming).
+ 
+The diagram below illustrates how the instruction-following pipeline works
+
+![generation pipeline)](https://github.com/openvinotoolkit/openvino_notebooks/assets/29454499/e881f4a4-fcc8-427a-afe1-7dd80aebd66e)
+
+As can be seen, on the first iteration, the user provided instructions converted to token ids using a tokenizer, then prepared input provided to the model. The model generates probabilities for all tokens in logits format  The way the next token will be selected over predicted probabilities is driven by the selected decoding methodology. You can find more information about the most popular decoding methods in this [blog](https://huggingface.co/blog/how-to-generate).
+
+There are several parameters that can control text generation quality:
+
+  * `Temperature` is a parameter used to control the level of creativity in AI-generated text. By adjusting the `temperature`, you can influence the AI model's probability distribution, making the text more focused or diverse.  
+  Consider the following example: The AI model has to complete the sentence "The cat is ____." with the following token probabilities:  
+
+    playing: 0.5  
+    sleeping: 0.25  
+    eating: 0.15  
+    driving: 0.05  
+    flying: 0.05  
+
+    - **Low temperature** (e.g., 0.2): The AI model becomes more focused and deterministic, choosing tokens with the highest probability, such as "playing."  
+    - **Medium temperature** (e.g., 1.0): The AI model maintains a balance between creativity and focus, selecting tokens based on their probabilities without significant bias, such as "playing," "sleeping," or "eating."  
+    - **High temperature** (e.g., 2.0): The AI model becomes more adventurous, increasing the chances of selecting less likely tokens, such as "driving" and "flying."
+  * `Top-p`, also known as nucleus sampling, is a parameter used to control the range of tokens considered by the AI model based on their cumulative probability. By adjusting the `top-p` value, you can influence the AI model's token selection, making it more focused or diverse.
+  Using the same example with the cat, consider the following top_p settings:  
+    - **Low top_p** (e.g., 0.5): The AI model considers only tokens with the highest cumulative probability, such as "playing."  
+    - **Medium top_p** (e.g., 0.8): The AI model considers tokens with a higher cumulative probability, such as "playing," "sleeping," and "eating."  
+    - **High top_p** (e.g., 1.0): The AI model considers all tokens, including those with lower probabilities, such as "driving" and "flying." 
+  * `Top-k` is another popular sampling strategy. In comparison with Top-P, which chooses from the smallest possible set of words whose cumulative probability exceeds the probability P, in Top-K sampling K most likely next words are filtered and the probability mass is redistributed among only those K next words. In our example with cat, if k=3, then only "playing", "sleeping" and "eating" will be taken into account as possible next word.
+
+To optimize the generation process and use memory more efficiently, the `use_cache=True` option is enabled. Since the output side is auto-regressive, an output token hidden state remains the same once computed for every further generation step. Therefore, recomputing it every time you want to generate a new token seems wasteful. With the cache, the model saves the hidden state once it has been computed. The model only computes the one for the most recently generated output token at each time step, re-using the saved ones for hidden tokens. This reduces the generation complexity from O(n^3) to O(n^2) for a transformer model. More details about how it works can be found in this [article](https://scale.com/blog/pytorch-improvements#Text%20Translation). With this option, the model gets the previous step's hidden states (cached attention keys and values) as input and additionally provides hidden states for the current step as output. It means for all next iterations, it is enough to provide only a new token obtained from the previous step and cached key values to get the next token prediction. 
+
+The generation cycle repeats until the end of the sequence token is reached or it also can be interrupted when maximum tokens will be generated. As already mentioned before, we can enable printing current generated tokens without waiting until when the whole generation is finished using Streaming API, it adds a new token to the output queue and then prints them when they are ready.
 
 # LLM Instruction-following pipeline with OpenVINO 
 
