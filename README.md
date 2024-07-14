@@ -47,6 +47,48 @@ The available options are:
 >**Note**: run model with demo, you will need to accept license agreement. 
 >You must be a registered user in 🤗 Hugging Face Hub. Please visit [HuggingFace model card](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf), carefully read terms of usage and click accept button.  You will need to use an access token for the code below to run. For more information on access tokens, refer to [this section of the documentation](https://huggingface.co/docs/hub/security-tokens).
 
+
+## Instantiate Model using Optimum Intel
+[back to top ⬆️](#Table-of-contents:)
+
+Optimum Intel can be used to load optimized models from the [Hugging Face Hub](https://huggingface.co/docs/optimum/intel/hf.co/models) and create pipelines to run an inference with OpenVINO Runtime using Hugging Face APIs. The Optimum Inference models are API compatible with Hugging Face Transformers models.  This means we just need to replace `AutoModelForXxx` class with the corresponding `OVModelForXxx` class.
+
+Below is an example of the RedPajama model
+
+```diff
+-from transformers import AutoModelForCausalLM
++from optimum.intel.openvino import OVModelForCausalLM
+from transformers import AutoTokenizer, pipeline
+
+model_id = "togethercomputer/RedPajama-INCITE-Chat-3B-v1"
+-model = AutoModelForCausalLM.from_pretrained(model_id)
++model = OVModelForCausalLM.from_pretrained(model_id, export=True)
+```
+
+Model class initialization starts with calling `from_pretrained` method. When downloading and converting the Transformers model, the parameter `export=True` should be added. We can save the converted model for the next usage with the `save_pretrained` method.
+Tokenizer class and pipelines API are compatible with Optimum models.
+
+To optimize the generation process and use memory more efficiently, the `use_cache=True` option is enabled. Since the output side is auto-regressive, an output token hidden state remains the same once computed for every further generation step. Therefore, recomputing it every time you want to generate a new token seems wasteful. With the cache, the model saves the hidden state once it has been computed. The model only computes the one for the most recently generated output token at each time step, re-using the saved ones for hidden tokens. This reduces the generation complexity from $O(n^3)$ to $O(n^2)$ for a transformer model. More details about how it works can be found in this [article](https://scale.com/blog/pytorch-improvements#Text%20Translation). With this option, the model gets the previous step's hidden states (cached attention keys and values) as input and additionally provides hidden states for the current step as output. It means for all next iterations, it is enough to provide only a new token obtained from the previous step and cached key values to get the next token prediction. 
+
+## Compress model weights
+[back to top ⬆️](#Table-of-contents:)
+The Weights Compression algorithm is aimed at compressing the weights of the models and can be used to optimize the model footprint and performance of large models where the size of weights is relatively larger than the size of activations, for example, Large Language Models (LLM). Compared to INT8 compression, INT4 compression improves performance even more but introduces a minor drop in prediction quality.
+
+
+### Weights Compression using Optimum Intel
+[back to top ⬆️](#Table-of-contents:)
+
+Optimum Intel supports weight compression via NNCF out of the box. For 8-bit compression we pass `load_in_8bit=True` to `from_pretrained()` method of `OVModelForCausalLM`. For 4 bit compression we provide `quantization_config=OVWeightQuantizationConfig(bits=4, ...)` argument containing number of bits and other compression parameters. An example of this approach usage you can find in [llm-chatbot notebook](../llm-chatbot)
+
+### Weights Compression using NNCF
+[back to top ⬆️](#Table-of-contents:)
+
+You also can perform weights compression for OpenVINO models using NNCF directly. `nncf.compress_weights` function accepts the OpenVINO model instance and compresses its weights for Linear and Embedding layers. We will consider this variant in this notebook for both int4 and int8 compression.
+
+
+>**Note**: This tutorial involves conversion model for FP16 and INT4/INT8 weights compression scenarios. It may be memory and time-consuming in the first run. You can manually control the compression precision below.
+>**Note**: There may be no speedup for INT4/INT8 compressed models on dGPU
+
 # LLM Instruction-following pipeline with OpenVINO 
 
 LLM stands for “Large Language Model”, which refers to a type of artificial intelligence model that is designed to understand and generate human-like text based on the input it receives. LLMs are trained on large datasets of text to learn patterns, grammar, and semantic relationships, allowing them to generate coherent and contextually relevant responses. One core capability of Large Language Models (LLMs) is to follow natural language instructions. Instruction-following models are capable of generating text in response to prompts and are often used for tasks like writing assistance, chatbots, and content generation.
