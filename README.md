@@ -73,10 +73,6 @@ You also can perform weights compression for OpenVINO models using NNCF directly
 ## Create an instruction-following inference pipeline
  
  The `run_generation` function accepts user-provided text input, tokenizes it, and runs the generation process. Text generation is an iterative process, where each next token depends on previously generated until a maximum number of tokens or stop generation condition is not reached. To obtain intermediate generation results without waiting until when generation is finished, we will use [`TextIteratorStreamer`](https://huggingface.co/docs/transformers/main/en/internal/generation_utils#transformers.TextIteratorStreamer), provided as part of HuggingFace [Streaming API](https://huggingface.co/docs/transformers/main/en/generation_strategies#streaming).
- 
-The diagram below illustrates how the instruction-following pipeline works
-
-![generation pipeline)](https://github.com/openvinotoolkit/openvino_notebooks/assets/29454499/e881f4a4-fcc8-427a-afe1-7dd80aebd66e)
 
 As can be seen, on the first iteration, the user provided instructions converted to token ids using a tokenizer, then prepared input provided to the model. The model generates probabilities for all tokens in logits format  The way the next token will be selected over predicted probabilities is driven by the selected decoding methodology. You can find more information about the most popular decoding methods in this [blog](https://huggingface.co/blog/how-to-generate).
 
